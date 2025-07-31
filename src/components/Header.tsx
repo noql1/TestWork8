@@ -10,7 +10,7 @@ const Header = () => {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
-        <Link href="/">Test Work 8</Link>
+        <Link href="/">TestWork8</Link>
       </div>
       <nav className={styles.nav}>
         {user ? (

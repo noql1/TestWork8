@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import useAuth from '@/store/auth';
 import styles from '@/styles/Login.module.scss';
+import axios from 'axios';
 
 export default function LoginPage() {
   const [username, setUsername] = useState<string>('');
@@ -34,8 +35,12 @@ export default function LoginPage() {
       const { token, ...user } = response.data;
       login(token, user);
       router.push('/');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || 'Login failed');
+      } else {
+        setError('Login failed');
+      }
     } finally {
       setLoading(false);
     }

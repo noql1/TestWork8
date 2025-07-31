@@ -10,6 +10,7 @@
 
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
   margin-bottom: 1.5rem;
@@ -22,8 +23,9 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.2s;
-  font-size: 0.9rem;
+  white-space: nowrap;
 }
+
 
 .active {
   background: #000;
