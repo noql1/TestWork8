@@ -1,95 +1,87 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+import { useEffect, useState } from 'react';
+import useAuth from '@/store/auth';
+import api from '@/lib/api';
+import ProductCard from '@/components/ProductCard';
+import styles from '@/styles/Home.module.scss';
 
-export default function Home() {
+interface Product {
+  id: number;
+  title: string;
+  price: number;
+  discountPercentage: number;
+  rating: number;
+  stock: number;
+  category: string;
+  images: string[];
+}
+
+const HomePage = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const user = useAuth(state => state.user);
+
+  // статические категории
+  const categories = ['All', 'beauty', 'fragrances', 'furniture', 'groceries'];
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const url =
+          selectedCategory === 'All'
+            ? '/products?limit=12'
+            : `/products/category/${encodeURIComponent(selectedCategory)}?limit=12`;
+        const { data } = await api.get<{ products: Product[] }>(url);
+        setProducts(data.products);
+      } catch {
+        setError('Unable to load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [selectedCategory]);
+
+  if (loading) {
+    return (
+      <div className={styles.loader}>
+        <div className={styles.spinner} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className={styles.message}>{error}</div>;
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className={styles.container}>
+      <div className={styles.tabs}>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            className={`${styles.tab} ${cat === selectedCategory ? styles.active : ''}`}
+            onClick={() => setSelectedCategory(cat)}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+            {cat}
+          </button>
+        ))}
+      </div>
+      <div className={styles.grid}>
+        {products.map(product => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            showAddToCart={!!user}
           />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        ))}
+      </div>
     </div>
   );
-}
+};
+
+export default HomePage;
